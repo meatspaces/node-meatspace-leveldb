@@ -33,17 +33,13 @@ var Meatspace = function (options) {
       }, function (err, lp) {
         if (lp) {
           self.db = lp;
-          if (callback) {
-            callback();
-          }
+          callback();
         } else {
           openDb(callback);
         }
       });
     } else {
-      if (callback) {
-        callback();
-      }
+      callback();
     }
   };
 
