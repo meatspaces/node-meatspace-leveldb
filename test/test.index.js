@@ -231,7 +231,7 @@ describe('meatspace', function () {
     it('get all recent public messages', function (done) {
       meat.shareRecent(0, function (err, mArr) {
         should.exist(mArr);
-        mArr.length.should.equal(2);
+        mArr.length.should.equal(1);
         done();
       });
     });
