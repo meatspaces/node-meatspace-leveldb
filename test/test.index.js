@@ -183,7 +183,7 @@ describe('meatspace', function () {
       });
     });
   });
-/*
+
   describe('.getSubscriptionRecent', function () {
     it('gets all recent messages from a subscription', function (done) {
       var subUrl = 'http://some.other.url/recent.json';
@@ -213,7 +213,7 @@ describe('meatspace', function () {
       });
     });
   });
-*/
+
   describe('.unsubscribe', function () {
     it('unsubscribes to a url', function (done) {
       var subUrl = 'http://some.other.url/recent.json';
@@ -236,13 +236,16 @@ describe('meatspace', function () {
       });
     });
   });
-/*
+
   describe('.shareOne', function () {
     it('get a single valid public message', function (done) {
-      meat.shareOne(id, function (err, m) {
-        should.exist(m);
-        m.meta.isPrivate.should.equal(false);
-        done();
+      message.meta.isPrivate = false;
+      meat.create(message, function (err, m) {
+        meat.shareOne(m.id, function (err, m) {
+          should.exist(m);
+          m.meta.isPrivate.should.equal(false);
+          done();
+        });
       });
     });
 
@@ -267,5 +270,4 @@ describe('meatspace', function () {
       });
     });
   });
-*/
 });

@@ -93,11 +93,7 @@ var Meatspace = function (options) {
             id ++;
           }
 
-          options.push({
-            type: 'put',
-            key: KEY + 'ids',
-            value: id
-          });
+          self.db.put(KEY + 'ids', id);
 
           message.id = id;
           message.fullName = self.fullName;
@@ -165,7 +161,6 @@ var Meatspace = function (options) {
           } else {
             callback(new Error('Invalid JSON'));
           }
-          self.db.close();
         }
       });
     });
@@ -199,7 +194,6 @@ var Meatspace = function (options) {
           } else {
             callback(null, url);
           }
-          self.db.close();
         });
       });
     });
@@ -253,43 +247,42 @@ var Meatspace = function (options) {
       });
     });
   };
-/*
+
   this.getSubscriptionRecent = function (url, callback) {
-    openDb();
-    this.db.get(KEY + 'subscriptions' + this.keyId, function (err, subs) {
-      var url = url.toLowerCase().trim();
+    openDb(function () {
+      self.db.get(KEY + 'subscriptions' + self.keyId, function (err, subs) {
+        url = url.toLowerCase().trim();
 
-      if (err || !subs[url]) {
-        callback(new Error('Subscription messages not found or you did not subscribe to this url'));
-      } else {
-        request(url, function (err, resp, body) {
-          if (err) {
-            callback(err);
-          } else {
-            if (typeof body !== 'object') {
-              try {
-                body = JSON.parse(body);
-              } catch (e) {
-                return callback(new Error('Could not parse JSON'));
+        if (err || !subs[url]) {
+          callback(new Error('Subscription messages not found or you did not subscribe to this url'));
+        } else {
+          request(url, function (err, resp, body) {
+            if (err) {
+              callback(err);
+            } else {
+              if (typeof body !== 'object') {
+                try {
+                  body = JSON.parse(body);
+                } catch (e) {
+                  return callback(new Error('Could not parse JSON'));
+                }
+              }
+
+              var recentArr = [];
+
+              for (var i = 0; i < body.posts.length; i ++) {
+                recentArr.push(body.posts[i]);
+
+                if (recentArr.length === body.posts.length) {
+                  callback(null, recentArr);
+                }
               }
             }
-
-            var recentArr = [];
-
-            for (var i = 0; i < body.posts.length; i ++) {
-              recentArr.push(body.posts[i]);
-
-              if (recentArr.length === body.posts.length) {
-                callback(null, recentArr);
-                self.db.close();
-              }
-            }
-          }
-        });
-      }
+          });
+        }
+      });
     });
   };
-*/
 
   var loadAll = function (ids, callback) {
     self.messageArray = [];
@@ -350,20 +343,55 @@ var Meatspace = function (options) {
       });
     });
   };
-/*
+
   this.del = function (id, callback) {
-    client.del(KEY + id, function (err) {
-      if (err) {
-        callback(new Error('Error deleting'));
-      } else {
-        client.lrem(KEY + 'all:ids' + self.keyId, 0, id);
-        client.lrem(KEY + 'priv:ids' + self.keyId, 0, id);
-        client.lrem(KEY + 'public:ids' + self.keyId, 0, id);
-        callback(null, true);
-      }
+    openDb(function () {
+      self.db.del(KEY + id, function (err) {
+        if (err) {
+          callback(new Error('Error deleting'));
+        } else {
+          self.db.get(KEY + 'all:ids' + self.keyId, function (err, ids) {
+            if (err) {
+              callback(err);
+            } else {
+              ids.splice(ids.indexOf(id), 1);
+
+              openDb(function () {
+                self.db.put(KEY + 'all:ids' + self.keyId, ids);
+              });
+            }
+          });
+
+          self.db.get(KEY + 'priv:ids' + self.keyId, function (err, privIds) {
+            if (err) {
+              callback(err);
+            } else {
+              privIds.splice(privIds.indexOf(id), 1);
+
+              openDb(function () {
+                self.db.put(KEY + 'priv:ids' + self.keyId, privIds);
+              });
+            }
+          });
+
+          self.db.get(KEY + 'public:ids' + self.keyId, function (err, publicIds) {
+            if (err) {
+              callback(err);
+            } else {
+              publicIds.splice(publicIds.indexOf(id), 1);
+
+              openDb(function () {
+                self.db.put(KEY + 'public:ids' + self.keyId, publicIds);
+              });
+            }
+          });
+
+          callback(null, true);
+        }
+      });
     });
   };
-*/
+
   this.getAll = function (start, callback) {
     openDb(function () {
       start = parseInt(start, 10);
@@ -413,21 +441,23 @@ var Meatspace = function (options) {
       });
     });
   };
-/*
+
   this.shareOne = function (id, callback) {
-    this.get(id, function (err, message) {
-      if (err) {
-        callback(err);
-      } else {
-        if (message.meta.isPrivate) {
-          callback(new Error('This is private'));
+    openDb(function () {
+      self.get(id, function (err, message) {
+        if (err) {
+          callback(err);
         } else {
-          callback(null, message);
+          if (message.meta.isPrivate) {
+            callback(new Error('This is private'));
+          } else {
+            callback(null, message);
+          }
         }
-      }
+      });
     });
   };
- */
+
   this.flush = function (dbPath) {
     leveldown.destroy(dbPath || self.dbPath, function (err) {
       console.log('Deleted database');
