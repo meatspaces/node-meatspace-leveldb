@@ -21,10 +21,6 @@ var Meatspace = function (options) {
   this.keyId = '';
 
   var openDb = function (callback) {
-    if (self.db) {
-      self.db.close();
-    }
-
     if (!self.db || self.db.isClosed()) {
       levelup(self.dbPath, {
         createIfMissing: true,
