@@ -6,6 +6,25 @@ var request = require('request');
 
 var KEY = 'meatspace:';
 
+var openDb = function (callback) {
+  if (!self.db || self.db.isClosed()) {
+    levelup(self.dbPath, {
+      createIfMissing: true,
+      keyEncoding: 'binary',
+      valueEncoding: 'json'
+    }, function (err, lp) {
+      if (lp) {
+        self.db = lp;
+        callback();
+      } else {
+        openDb(callback);
+      }
+    });
+  } else {
+    callback();
+  }
+};
+
 var Meatspace = function (options) {
   if (!options.fullName || !options.postUrl || !options.username) {
     throw new Error('fullName, username, db and postUrl are mandatory');
@@ -17,7 +36,7 @@ var Meatspace = function (options) {
   this.username = options.username;
   this.postUrl = options.postUrl;
   this.dbPath = options.db;
-  this.limit = options.limit - 1 || 9;
+  this.limit = options.limit - 1 || 10;
   this.keyId = '';
 
   var openDb = function (callback) {
@@ -104,7 +123,7 @@ var Meatspace = function (options) {
               privIds = [];
             }
 
-            if (message.meta.isPrivate) {
+            if (message.meta.isPrivate && privIds.indexOf(id) === -1) {
               privIds.push(id);
 
               self.db.put(KEY + 'priv:ids' + self.keyId, privIds);
@@ -116,9 +135,8 @@ var Meatspace = function (options) {
               publicIds = [];
             }
 
-            if (!message.meta.isPrivate) {
+            if (!message.meta.isPrivate && publicIds.indexOf(id) === -1) {
               publicIds.push(id);
-
               self.db.put(KEY + 'public:ids' + self.keyId, publicIds);
             }
           });
@@ -128,7 +146,9 @@ var Meatspace = function (options) {
               // Not created, so create a new array
               ids = [id];
             } else {
-              ids.unshift(id);
+              if (ids.indexOf(id) === -1) {
+                ids.unshift(id);
+              }
             }
 
             self.db.put(KEY + 'all:ids' + self.keyId, ids);
@@ -302,7 +322,7 @@ var Meatspace = function (options) {
 
         if (message.meta.isPrivate) {
           privIds.push(message.id);
-        } else {
+        } else if (privIds.indexOf(message.id) === -1) {
           privIds.splice(privIds.indexOf(message.id), 1);
         }
 
@@ -316,7 +336,7 @@ var Meatspace = function (options) {
 
         if (message.meta.isPrivate) {
           publicIds.splice(publicIds.indexOf(message.id), 1);
-        } else {
+        } else if (publicIds.indexOf(message.id) === -1) {
           publicIds.push(message.id);
         }
 
@@ -352,9 +372,7 @@ var Meatspace = function (options) {
             } else {
               ids.splice(ids.indexOf(id), 1);
 
-              openDb(function () {
-                self.db.put(KEY + 'all:ids' + self.keyId, ids);
-              });
+              self.db.put(KEY + 'all:ids' + self.keyId, ids);
             }
           });
 
@@ -364,9 +382,7 @@ var Meatspace = function (options) {
             } else {
               privIds.splice(privIds.indexOf(id), 1);
 
-              openDb(function () {
-                self.db.put(KEY + 'priv:ids' + self.keyId, privIds);
-              });
+              self.db.put(KEY + 'priv:ids' + self.keyId, privIds);
             }
           });
 
@@ -376,10 +392,7 @@ var Meatspace = function (options) {
             } else {
               publicIds.splice(publicIds.indexOf(id), 1);
 
-              openDb(function () {
-                self.db.put(KEY + 'public:ids' + self.keyId, publicIds);
-              });
-            }
+              self.db.put(KEY + 'public:ids' + self.keyId, publicIds);            }
           });
 
           callback(null, true);
@@ -401,7 +414,7 @@ var Meatspace = function (options) {
           callback(err);
         } else {
           self.totalAll = cids.length;
-          loadAll(cids.slice(start, self.limit + start), callback);
+          loadAll(cids.slice(start, self.limit + start + 1), callback);
         }
       });
     });
@@ -432,7 +445,7 @@ var Meatspace = function (options) {
           callback(err);
         } else {
           self.totalPublic = cids.length;
-          loadAll(cids.slice(start, self.limit + start), callback);
+          loadAll(cids.slice(start, self.limit + start + 1), callback);
         }
       });
     });
