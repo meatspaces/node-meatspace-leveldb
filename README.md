@@ -49,18 +49,18 @@ Install leveldb.
 
 ### Initialize
 
-    var Meatspace = require('meatspace');
+    var Meatspace = require('meatspace-leveldb');
 
     var meat = new Meatspace({
       fullName: 'Edna Piranha',
       username: 'ednapiranha',
       postUrl: 'http://meatspace.generalgoods.net/recent.json',
-      db: 0,
+      db: './db',
       limit: 10,
       keyId: ':1'
     });
 
-db is the Redis database you are using.
+db is the path where your leveldb database is located.
 
 keyId is an optional value you can set to assign a key to a particular user id or identifier. If you are not running this for multiple users, skip changing this option.
 
