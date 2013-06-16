@@ -362,6 +362,7 @@ var Meatspace = function (options) {
 
   this.del = function (id, callback) {
     openDb(function () {
+      id = parseInt(id, 10);
       self.db.del(KEY + id, function (err) {
         if (err) {
           callback(new Error('Error deleting'));
@@ -371,7 +372,6 @@ var Meatspace = function (options) {
               callback(err);
             } else {
               ids.splice(ids.indexOf(id), 1);
-
               self.db.put(KEY + 'all:ids' + self.keyId, ids);
             }
           });
@@ -381,7 +381,6 @@ var Meatspace = function (options) {
               callback(err);
             } else {
               privIds.splice(privIds.indexOf(id), 1);
-
               self.db.put(KEY + 'priv:ids' + self.keyId, privIds);
             }
           });
@@ -391,10 +390,10 @@ var Meatspace = function (options) {
               callback(err);
             } else {
               publicIds.splice(publicIds.indexOf(id), 1);
-
               self.db.put(KEY + 'public:ids' + self.keyId, publicIds);            }
           });
 
+          self.ids.splice(self.ids.indexOf(id), 1);
           callback(null, true);
         }
       });
