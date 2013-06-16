@@ -21,7 +21,8 @@
     "url": "git://github.com/ednapiranha/node-meatspace-leveldb.git"
   },
   "keywords": [
-    "microblog"
+    "microblog",
+    "leveldb"
   ],
   "author": "Edna Piranha <jen@ednapiranha.com> (http://ednapiranha.com)",
   "license": "BSD"

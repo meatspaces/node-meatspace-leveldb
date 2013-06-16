@@ -72,25 +72,76 @@ var Meatspace = function (options) {
     });
   };
 
-  var setPublicPostIds = function (options, message, callback) {
-    self.db.get(KEY + 'public:ids' + self.keyId, function (err, publicIds) {
-      if (!publicIds) {
-        publicIds = [];
-      }
-      if (message.meta.isPrivate) {
-        publicIds.splice(publicIds.indexOf(message.id), 1);
+  var setAll = function (opts, message, id, callback) {
+    self.db.get(KEY + 'all:ids' + self.keyId, function (err, ids) {
+      if (err) {
+        // Not created, so create a new array
+        ids = [id];
       } else {
-        publicIds.push(message.id);
+        if (ids.indexOf(id) === -1) {
+          ids.unshift(id);
+        }
       }
 
-      options.push({
+      opts.push({
         type: 'put',
-        key: KEY + 'public:ids' + self.keyId,
-        value: publicIds
+        key: KEY + 'all:ids' + self.keyId,
+        value: ids
       });
 
-      self.setBatch(options);
-      callback(null, message);
+      opts.push({
+        type: 'put',
+        key: KEY + id,
+        value: message
+      });
+
+      self.db.batch(opts, function (err) {
+        if (err) {
+          callback(err);
+        } else {
+          callback(null, message);
+        }
+      });
+    });
+  };
+
+  var setPublic = function (opts, message, id, callback) {
+    self.db.get(KEY + 'public:ids' + self.keyId, function (err, publicIds) {
+      if (err) {
+        publicIds = [];
+      }
+
+      if (!message.meta.isPrivate && publicIds.indexOf(id) === -1) {
+        publicIds.push(id);
+
+        opts.push({
+          type: 'put',
+          key: KEY + 'public:ids' + self.keyId,
+          value: publicIds
+        });
+      }
+
+      setAll(opts, message, id, callback);
+    });
+  };
+
+  var setPrivate = function (opts, message, id, callback) {
+    self.db.get(KEY + 'priv:ids' + self.keyId, function (err, privIds) {
+      if (err) {
+        privIds = [];
+      }
+
+      if (message.meta.isPrivate && privIds.indexOf(id) === -1) {
+        privIds.push(id);
+
+        opts.push({
+          type: 'put',
+          key: KEY + 'priv:ids' + self.keyId,
+          value: privIds
+        });
+      }
+
+      setPublic(opts, message, id, callback);
     });
   };
 
@@ -98,7 +149,7 @@ var Meatspace = function (options) {
     if (!message || !this.fullName || !this.postUrl) {
       callback(new Error('Message invalid'));
     } else {
-      var options = [];
+      var opts = [];
 
       openDb(function () {
         self.db.get(KEY + 'ids', function (err, id) {
@@ -108,7 +159,11 @@ var Meatspace = function (options) {
             id ++;
           }
 
-          self.db.put(KEY + 'ids', id);
+          opts.push({
+            type: 'put',
+            key: KEY + 'ids',
+            value: id
+          });
 
           message.id = id;
           message.fullName = self.fullName;
@@ -118,49 +173,7 @@ var Meatspace = function (options) {
           }
           message.content.created = message.content.updated = Math.round(new Date() / 1000);
 
-          self.db.get(KEY + 'priv:ids' + self.keyId, function (err, privIds) {
-            if (err) {
-              privIds = [];
-            }
-
-            if (message.meta.isPrivate && privIds.indexOf(id) === -1) {
-              privIds.push(id);
-
-              self.db.put(KEY + 'priv:ids' + self.keyId, privIds);
-            }
-          });
-
-          self.db.get(KEY + 'public:ids' + self.keyId, function (err, publicIds) {
-            if (err) {
-              publicIds = [];
-            }
-
-            if (!message.meta.isPrivate && publicIds.indexOf(id) === -1) {
-              publicIds.push(id);
-              self.db.put(KEY + 'public:ids' + self.keyId, publicIds);
-            }
-          });
-
-          self.db.get(KEY + 'all:ids' + self.keyId, function (err, ids) {
-            if (err) {
-              // Not created, so create a new array
-              ids = [id];
-            } else {
-              if (ids.indexOf(id) === -1) {
-                ids.unshift(id);
-              }
-            }
-
-            self.db.put(KEY + 'all:ids' + self.keyId, ids);
-          });
-
-          self.db.put(KEY + id, message, function (err) {
-            if (err) {
-              callback(err);
-            } else {
-              callback(null, message);
-            }
-          });
+          setPrivate(opts, message, id, callback);
         });
       });
     }
@@ -313,34 +326,22 @@ var Meatspace = function (options) {
     }
   };
 
-  this.update = function (message, callback) {
-    openDb(function () {
-      self.db.get(KEY + 'priv:ids' + self.keyId, function (err, privIds) {
-        if (!privIds) {
-          privIds = [];
-        }
+  var resetPublic = function (opts, message, callback) {
+    self.db.get(KEY + 'public:ids' + self.keyId, function (err, publicIds) {
+      if (!publicIds) {
+        publicIds = [];
+      }
 
-        if (message.meta.isPrivate) {
-          privIds.push(message.id);
-        } else if (privIds.indexOf(message.id) === -1) {
-          privIds.splice(privIds.indexOf(message.id), 1);
-        }
+      if (message.meta.isPrivate) {
+        publicIds.splice(publicIds.indexOf(message.id), 1);
+      } else if (publicIds.indexOf(message.id) === -1) {
+        publicIds.push(message.id);
+      }
 
-        self.db.put(KEY + 'priv:ids' + self.keyId, privIds);
-      });
-
-      self.db.get(KEY + 'public:ids' + self.keyId, function (err, publicIds) {
-        if (!publicIds) {
-          publicIds = [];
-        }
-
-        if (message.meta.isPrivate) {
-          publicIds.splice(publicIds.indexOf(message.id), 1);
-        } else if (publicIds.indexOf(message.id) === -1) {
-          publicIds.push(message.id);
-        }
-
-        self.db.put(KEY + 'public:ids' + self.keyId, publicIds);
+      opts.push({
+        type: 'put',
+        key: KEY + 'public:ids' + self.keyId,
+        value: publicIds
       });
 
       self.db.get(KEY + message.id, function (err, msg) {
@@ -348,7 +349,14 @@ var Meatspace = function (options) {
           callback(err);
         } else {
           message.content.updated = Math.round(new Date() / 1000);
-          self.db.put(KEY + message.id, message, function (err) {
+
+          opts.push({
+            type: 'put',
+            key: KEY + message.id,
+            value: message
+          });
+
+          self.db.batch(opts, function (err) {
             if (err) {
               callback(err);
             } else {
@@ -360,41 +368,99 @@ var Meatspace = function (options) {
     });
   };
 
+  this.update = function (message, callback) {
+    openDb(function () {
+      self.db.get(KEY + 'priv:ids' + self.keyId, function (err, privIds) {
+        var opts = [];
+
+        if (!privIds) {
+          privIds = [];
+        }
+
+        if (message.meta.isPrivate) {
+          privIds.push(message.id);
+        } else if (privIds.indexOf(message.id) === -1) {
+          privIds.splice(privIds.indexOf(message.id), 1);
+        }
+
+        opts.push({
+          type: 'put',
+          key: KEY + 'priv:ids' + self.keyId,
+          value: privIds
+        });
+
+        resetPublic(opts, message, callback);
+      });
+    });
+  };
+
+  var delPublic = function (opts, id, callback) {
+    self.db.get(KEY + 'public:ids' + self.keyId, function (err, publicIds) {
+      if (err) {
+        callback(err);
+      } else {
+        publicIds.splice(publicIds.indexOf(id), 1);
+
+        opts.push({
+          type: 'put',
+          key: KEY + 'public:ids' + self.keyId,
+          value: publicIds
+        });
+
+        self.ids.splice(self.ids.indexOf(id), 1);
+
+        self.db.batch(opts, function (err) {
+          if (err) {
+            callback(err);
+          } else {
+            callback(null, true);
+          }
+        });
+      }
+    });
+  };
+
+  var delPrivate = function (opts, id, callback) {
+    self.db.get(KEY + 'priv:ids' + self.keyId, function (err, privIds) {
+      if (err) {
+        callback(err);
+      } else {
+        privIds.splice(privIds.indexOf(id), 1);
+
+        opts.push({
+          type: 'put',
+          key: KEY + 'priv:ids' + self.keyId,
+          value: privIds
+        });
+
+        delPublic(opts, id, callback);
+      }
+    });
+  };
+
   this.del = function (id, callback) {
     openDb(function () {
       id = parseInt(id, 10);
-      self.db.del(KEY + id, function (err) {
+      var opts = [];
+
+      opts.push({
+        type: 'del',
+        key: KEY + id
+      });
+
+      self.db.get(KEY + 'all:ids' + self.keyId, function (err, ids) {
         if (err) {
-          callback(new Error('Error deleting'));
+          callback(err);
         } else {
-          self.db.get(KEY + 'all:ids' + self.keyId, function (err, ids) {
-            if (err) {
-              callback(err);
-            } else {
-              ids.splice(ids.indexOf(id), 1);
-              self.db.put(KEY + 'all:ids' + self.keyId, ids);
-            }
+          ids.splice(ids.indexOf(id), 1);
+
+          opts.push({
+            type: 'put',
+            key: KEY + 'all:ids' + self.keyId,
+            value: ids
           });
 
-          self.db.get(KEY + 'priv:ids' + self.keyId, function (err, privIds) {
-            if (err) {
-              callback(err);
-            } else {
-              privIds.splice(privIds.indexOf(id), 1);
-              self.db.put(KEY + 'priv:ids' + self.keyId, privIds);
-            }
-          });
-
-          self.db.get(KEY + 'public:ids' + self.keyId, function (err, publicIds) {
-            if (err) {
-              callback(err);
-            } else {
-              publicIds.splice(publicIds.indexOf(id), 1);
-              self.db.put(KEY + 'public:ids' + self.keyId, publicIds);            }
-          });
-
-          self.ids.splice(self.ids.indexOf(id), 1);
-          callback(null, true);
+          delPrivate(opts, id, callback);
         }
       });
     });

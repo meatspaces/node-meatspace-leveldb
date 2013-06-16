@@ -70,7 +70,11 @@ describe('meatspace', function () {
         m.username.should.equal(meat.username);
         m.fullName.should.equal(meat.fullName);
         m.meta.should.equal(message.meta);
-        done();
+        meat.getAllIds(function (err, mArr) {
+          mArr.length.should.equal(1);
+          mArr.should.eql([1]);
+          done();
+        });
       });
     });
 
@@ -80,7 +84,11 @@ describe('meatspace', function () {
         should.exist(m);
         secId = m.id;
         m.meta.isPrivate.should.equal(message.meta.isPrivate);
-        done();
+        meat.getAllIds(function (err, mArr) {
+          mArr.length.should.equal(2);
+          mArr.should.eql([2,1]);
+          done();
+        });
       });
     });
 
@@ -90,8 +98,12 @@ describe('meatspace', function () {
       meat.create(message, function (err, m) {
         should.exist(m);
         m.content.message.should.equal('a new message with a key id');
-        meat.keyId = ''; // reset key
-        done();
+        meat.getAllIds(function (err, mArr) {
+          mArr.length.should.equal(1);
+          mArr.should.eql([3]);
+          meat.keyId = ''; // reset key
+          done();
+        });
       });
     });
   });
@@ -158,7 +170,11 @@ describe('meatspace', function () {
         m.shares[0].should.equal(meat.postUrl);
         m.meta.isShared.should.equal(true);
         m.meta.originUrl.should.equal(externalMessage.meta.originUrl);
-        done();
+        meat.getAllIds(function (err, mArr) {
+          mArr.length.should.equal(3);
+          mArr.should.eql([4,2,1]);
+          done();
+        });
       });
     });
 
@@ -232,6 +248,7 @@ describe('meatspace', function () {
       meat.shareRecent(0, function (err, mArr) {
         should.exist(mArr);
         mArr.length.should.equal(1);
+        mArr[0].id.should.eql(4);
         done();
       });
     });
@@ -244,7 +261,11 @@ describe('meatspace', function () {
         meat.shareOne(m.id, function (err, m) {
           should.exist(m);
           m.meta.isPrivate.should.equal(false);
-          done();
+          meat.getAllIds(function (err, mArr) {
+            mArr.length.should.equal(4);
+            mArr.should.eql([5,4,2,1]);
+            done();
+          });
         });
       });
     });
@@ -260,11 +281,15 @@ describe('meatspace', function () {
   describe('.del', function () {
     it('deletes a message', function (done) {
       meat.create(message, function (err, m) {
-        id = m.id;
+        id = m.id; // new id 6
         meat.del(id, function (err, status) {
           meat.get(id, function (err, msg) {
             should.not.exist(msg);
-            done();
+            meat.getAllIds(function (err, mArr) {
+              mArr.length.should.equal(4);
+              mArr.should.eql([5,4,2,1]);
+              done();
+            });
           });
         });
       });
