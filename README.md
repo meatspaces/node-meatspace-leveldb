@@ -193,5 +193,5 @@ Assumptions: externalMessage is a meatspace message from a separate server.
 
 ## Important notes and tips
 
-* Your posts will not be automatically protected from XSS so that is up to you to handle if you decide to use this in a web app. If you want to work from an existing example, feel free to fork [generaltoast](https://github.com/ednapiranha/generaltoast).
+* Your posts will not be automatically protected from XSS so that is up to you to handle if you decide to use this in a web app. If you want to work from an existing example, feel free to fork [generaltoast](https://github.com/ednapiranha/generaltoast) and test the leveldb branch.
 * If you want to back up your messages in a secondary database such as PostgreSQL or MySQL, just add this after a successfull callback in meat.add, meat.del, etc.
