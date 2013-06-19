@@ -112,7 +112,7 @@ var Meatspace = function (options) {
       }
 
       if (!message.meta.isPrivate && publicIds.indexOf(id) === -1) {
-        publicIds.push(id);
+        publicIds.unshift(id);
 
         opts.push({
           type: 'put',
@@ -132,7 +132,7 @@ var Meatspace = function (options) {
       }
 
       if (message.meta.isPrivate && privIds.indexOf(id) === -1) {
-        privIds.push(id);
+        privIds.unshift(id);
 
         opts.push({
           type: 'put',
@@ -335,7 +335,7 @@ var Meatspace = function (options) {
       if (message.meta.isPrivate) {
         publicIds.splice(publicIds.indexOf(message.id), 1);
       } else if (publicIds.indexOf(message.id) === -1) {
-        publicIds.push(message.id);
+        publicIds.unshift(message.id);
       }
 
       opts.push({
@@ -378,7 +378,7 @@ var Meatspace = function (options) {
         }
 
         if (message.meta.isPrivate) {
-          privIds.push(message.id);
+          privIds.unshift(message.id);
         } else if (privIds.indexOf(message.id) === -1) {
           privIds.splice(privIds.indexOf(message.id), 1);
         }
