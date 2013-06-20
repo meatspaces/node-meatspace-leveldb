@@ -6,25 +6,6 @@ var request = require('request');
 
 var KEY = 'meatspace:';
 
-var openDb = function (callback) {
-  if (!self.db || self.db.isClosed()) {
-    levelup(self.dbPath, {
-      createIfMissing: true,
-      keyEncoding: 'binary',
-      valueEncoding: 'json'
-    }, function (err, lp) {
-      if (lp) {
-        self.db = lp;
-        callback();
-      } else {
-        openDb(callback);
-      }
-    });
-  } else {
-    callback();
-  }
-};
-
 var Meatspace = function (options) {
   if (!options.fullName || !options.postUrl || !options.username) {
     throw new Error('fullName, username, db and postUrl are mandatory');
@@ -46,11 +27,11 @@ var Meatspace = function (options) {
         keyEncoding: 'binary',
         valueEncoding: 'json'
       }, function (err, lp) {
-        if (lp) {
+        if (err) {
+          throw new Error('Could not open database: ', err);
+        } else {
           self.db = lp;
           callback();
-        } else {
-          openDb(callback);
         }
       });
     } else {
