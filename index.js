@@ -27,11 +27,11 @@ var Meatspace = function (options) {
         keyEncoding: 'binary',
         valueEncoding: 'json'
       }, function (err, lp) {
-        if (err) {
-          throw new Error('Could not open database: ', err);
-        } else {
+        if (lp) {
           self.db = lp;
           callback();
+        } else {
+          openDb(callback);
         }
       });
     } else {
@@ -93,7 +93,7 @@ var Meatspace = function (options) {
       }
 
       if (!message.meta.isPrivate && publicIds.indexOf(id) === -1) {
-        publicIds.unshift(id);
+        publicIds.push(id);
 
         opts.push({
           type: 'put',
@@ -113,7 +113,7 @@ var Meatspace = function (options) {
       }
 
       if (message.meta.isPrivate && privIds.indexOf(id) === -1) {
-        privIds.unshift(id);
+        privIds.push(id);
 
         opts.push({
           type: 'put',
@@ -316,7 +316,7 @@ var Meatspace = function (options) {
       if (message.meta.isPrivate) {
         publicIds.splice(publicIds.indexOf(message.id), 1);
       } else if (publicIds.indexOf(message.id) === -1) {
-        publicIds.unshift(message.id);
+        publicIds.push(message.id);
       }
 
       opts.push({
@@ -359,7 +359,7 @@ var Meatspace = function (options) {
         }
 
         if (message.meta.isPrivate) {
-          privIds.unshift(message.id);
+          privIds.push(message.id);
         } else if (privIds.indexOf(message.id) === -1) {
           privIds.splice(privIds.indexOf(message.id), 1);
         }
