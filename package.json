@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/ednapiranha/node-meatspace-leveldb.git"
+    "url": "git://github.com/meatspaces/node-meatspace-leveldb.git"
   },
   "keywords": [
     "microblog",
