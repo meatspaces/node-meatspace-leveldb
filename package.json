@@ -1,6 +1,6 @@
 {
   "name": "meatspace-leveldb",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Decentralized micro[b]logging with leveldb",
   "main": "index.js",
   "dependencies": {

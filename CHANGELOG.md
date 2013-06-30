@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.4
+
+* Updated git link for repository
+
 ## 0.0.3
 
 * Removed unused function
