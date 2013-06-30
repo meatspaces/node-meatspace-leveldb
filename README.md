@@ -10,7 +10,8 @@ You can use curl to run all the commands below or you can create your own site a
 
 ## Setup
 
-[http://code.google.com/p/leveldb/downloads/list](Install leveldb)
+
+[Install leveldb](http://code.google.com/p/leveldb/downloads/list)
 
 ## Install dependencies
 
