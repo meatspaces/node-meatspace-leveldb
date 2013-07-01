@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.5
+
+* Fixed regression on id order
+
 ## 0.0.4
 
 * Updated git link for repository
