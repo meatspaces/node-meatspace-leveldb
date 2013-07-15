@@ -58,9 +58,11 @@ You can use curl to run all the commands below or you can create your own site a
       keyId: ':1'
     });
 
-db is the path where your leveldb database is located.
+`db` is the path where your leveldb database is located.
 
-keyId is an optional value you can set to assign a key to a particular user id or identifier. If you are not running this for multiple users, skip changing this option.
+`keyId` is an optional value you can set to assign a key to a particular user id or identifier. If you are not running this for multiple users, skip changing this option (optional).
+
+`limit` is the number of records you want returned per page - defaults to 10 (optional).
 
 ### Create
 

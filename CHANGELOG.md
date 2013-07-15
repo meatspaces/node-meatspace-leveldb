@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.6
+
+* Readme updates
+
 ## 0.0.5
 
 * Fixed regression on id order
