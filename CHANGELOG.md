@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.7
+
+* Major refactor (will not work with multiple user keys for now)
+
 ## 0.0.6
 
 * Readme updates

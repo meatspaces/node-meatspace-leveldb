@@ -4,6 +4,7 @@ process.env.NODE_ENV = 'test';
 
 var should = require('should');
 var nock = require('nock');
+var child = require('child_process');
 var Meatspace = require('../index');
 
 var meat = new Meatspace({
@@ -14,6 +15,18 @@ var meat = new Meatspace({
 });
 var id;
 var secId;
+
+var getObjSize = function(obj) {
+  var size = 0;
+
+  for (var key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      size ++;
+    }
+  }
+
+  return size;
+};
 
 var message = {
   content: {
@@ -47,9 +60,11 @@ var externalMessage = {
   shares: []
 };
 
-meat.flush('./test/db');
-
 describe('meatspace', function () {
+  after(function () {
+    child.exec('rm -rf ./test/db');
+  });
+
   describe('.create',  function () {
     it('creates an invalid message', function (done) {
       meat.fullName = null;
@@ -70,11 +85,7 @@ describe('meatspace', function () {
         m.username.should.equal(meat.username);
         m.fullName.should.equal(meat.fullName);
         m.meta.should.equal(message.meta);
-        meat.getAllIds(function (err, mArr) {
-          mArr.length.should.equal(1);
-          mArr.should.eql([1]);
-          done();
-        });
+        done();
       });
     });
 
@@ -84,26 +95,7 @@ describe('meatspace', function () {
         should.exist(m);
         secId = m.id;
         m.meta.isPrivate.should.equal(message.meta.isPrivate);
-        meat.getAllIds(function (err, mArr) {
-          mArr.length.should.equal(2);
-          mArr.should.eql([2,1]);
-          done();
-        });
-      });
-    });
-
-    it('creates a valid public message with a key id', function (done) {
-      meat.keyId = ':testId';
-      message.content.message = 'a new message with a key id';
-      meat.create(message, function (err, m) {
-        should.exist(m);
-        m.content.message.should.equal('a new message with a key id');
-        meat.getAllIds(function (err, mArr) {
-          mArr.length.should.equal(1);
-          mArr.should.eql([3]);
-          meat.keyId = ''; // reset key
-          done();
-        });
+        done();
       });
     });
   });
@@ -137,7 +129,7 @@ describe('meatspace', function () {
             mt.content.updated.should.not.equal(mt.content.created);
             done();
           });
-        }, 1000);
+        }, 1500);
       });
     });
   });
@@ -145,16 +137,6 @@ describe('meatspace', function () {
   describe('.getAll', function () {
     it('get all messages', function (done) {
       meat.getAll(0, function (err, mArr) {
-        should.exist(mArr);
-        mArr.length.should.equal(2);
-        done();
-      });
-    });
-  });
-
-  describe('.getAllIds', function () {
-    it('get all message ids', function (done) {
-      meat.getAllIds(function (err, mArr) {
         should.exist(mArr);
         mArr.length.should.equal(2);
         done();
@@ -170,11 +152,7 @@ describe('meatspace', function () {
         m.shares[0].should.equal(meat.postUrl);
         m.meta.isShared.should.equal(true);
         m.meta.originUrl.should.equal(externalMessage.meta.originUrl);
-        meat.getAllIds(function (err, mArr) {
-          mArr.length.should.equal(3);
-          mArr.should.eql([4,2,1]);
-          done();
-        });
+        done();
       });
     });
 
@@ -247,8 +225,7 @@ describe('meatspace', function () {
     it('get all recent public messages', function (done) {
       meat.shareRecent(0, function (err, mArr) {
         should.exist(mArr);
-        mArr.length.should.equal(1);
-        mArr[0].id.should.eql(4);
+        mArr.length.should.equal(2);
         done();
       });
     });
@@ -261,11 +238,7 @@ describe('meatspace', function () {
         meat.shareOne(m.id, function (err, m) {
           should.exist(m);
           m.meta.isPrivate.should.equal(false);
-          meat.getAllIds(function (err, mArr) {
-            mArr.length.should.equal(4);
-            mArr.should.eql([5,4,2,1]);
-            done();
-          });
+          done();
         });
       });
     });
@@ -285,11 +258,7 @@ describe('meatspace', function () {
         meat.del(id, function (err, status) {
           meat.get(id, function (err, msg) {
             should.not.exist(msg);
-            meat.getAllIds(function (err, mArr) {
-              mArr.length.should.equal(4);
-              mArr.should.eql([5,4,2,1]);
-              done();
-            });
+            done();
           });
         });
       });

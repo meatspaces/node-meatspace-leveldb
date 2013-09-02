@@ -1,12 +1,14 @@
 {
   "name": "meatspace-leveldb",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Decentralized micro[b]logging with leveldb",
   "main": "index.js",
   "dependencies": {
-    "levelup": "0.10.0",
-    "leveldown": "0.6.1",
-    "request": "2.21.0"
+    "level": ">= 0.10.0",
+    "level-sublevel": ">= 0.6.1",
+    "leveldown": ">= 0.6.1",
+    "request": ">= 2.21.0",
+    "level-paginate": "*"
   },
   "devDependencies": {
     "mocha": ">= 1.9.0",
