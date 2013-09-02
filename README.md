@@ -8,10 +8,6 @@ Decentralized micrologging. A lightweight module to manage mini posts through yo
 
 You can use curl to run all the commands below or you can create your own site and use the module as part of your micrologging setup.
 
-## Setup
-
-[Install leveldb](http://code.google.com/p/leveldb/downloads/list)
-
 ## Install dependencies
 
     > npm install
