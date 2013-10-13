@@ -113,7 +113,7 @@ You can use curl to run all the commands below or you can create your own site a
 
 The default limit is set to 10. You can change this by setting `meat.limit = 15` as an example.
 
-First argument 0 is the starting point from where you want to get messages.
+First argument 0 is the page from where you want to get messages.
 
     meat.getAll(0, function (err, messages) {
       if (!err) {
@@ -125,7 +125,7 @@ First argument 0 is the starting point from where you want to get messages.
 
 The default limit is set to 10. You can change this by setting `meat.limit = 15` as an example.
 
-First argument 0 is the starting point from where you want to get messages.
+First argument 0 is the page from where you want to get messages.
 
     meat.shareRecent(0, function (err, messages) {
       if (!err) {
