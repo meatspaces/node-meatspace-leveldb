@@ -4,7 +4,6 @@ var level = require('level');
 var request = require('request');
 var paginate = require('level-paginate');
 var Sublevel = require('level-sublevel');
-var through2 = require('through2');
 var concat = require('concat-stream');
 
 var Meatspace = function (options) {

@@ -9,7 +9,6 @@
     "leveldown": ">= 0.6.1",
     "request": ">= 2.21.0",
     "level-paginate": "*",
-    "through2": ">= 0.2.3",
     "concat-stream": ">= 1.2.1"
   },
   "devDependencies": {
