@@ -171,7 +171,7 @@ describe('meatspace', function () {
         meat.getSubscriptions(function (err, s) {
           should.exist(s);
           s.length.should.equal(1);
-          s[0].should.equal(subUrl);
+          s[0].key.should.equal(subUrl);
           done();
         });
       });

@@ -4,6 +4,8 @@ var level = require('level');
 var request = require('request');
 var paginate = require('level-paginate');
 var Sublevel = require('level-sublevel');
+var through2 = require('through2');
+var concat = require('concat-stream');
 
 var Meatspace = function (options) {
   if (!options.fullName || !options.postUrl || !options.username) {
@@ -122,17 +124,14 @@ var Meatspace = function (options) {
   };
 
   this.getSubscriptions = function (callback) {
-    var subscriptions = [];
+    var rs = this.subscriptionLevel.createReadStream();
 
-    this.subscriptionLevel.createReadStream(
-    ).on('data', function (data) {
-
-      subscriptions.push(data.key);
-    }).on('error', function (err) {
-
-      callback(err);
-    }).on('end', function () {
+    rs.pipe(concat(function (subscriptions) {
       callback(null, subscriptions);
+    }));
+
+    rs.on('error', function (err) {
+      callback(err);
     });
   };
 
@@ -195,40 +194,32 @@ var Meatspace = function (options) {
   };
 
   this.getAll = function (start, callback) {
-    var messages = [];
-
-    paginate(this.centralLevel, KEY, {
-
+    var rs = paginate(this.centralLevel, KEY, {
       page: start,
       num: self.limit
-    }).on('data', function (data) {
+    });
 
-      messages.push(data);
-    }).on('error', function (err) {
-
-      callback(err);
-    }).on('end', function () {
-
+    rs.pipe(concat(function (messages) {
       callback(null, messages);
+    }));
+
+    rs.on('error', function (err) {
+      callback(err);
     });
   };
 
   this.shareRecent = function (start, callback) {
-    var messages = [];
-
-    paginate(this.publicLevel, KEY, {
-
+    var rs = paginate(this.publicLevel, KEY, {
       page: start,
       num: self.limit
-    }).on('data', function (data) {
+    });
 
-      messages.push(data);
-    }).on('error', function (err) {
-
-      callback(err);
-    }).on('end', function () {
-
+    rs.pipe(concat(function (messages) {
       callback(null, messages);
+    }));
+
+    rs.on('error', function (err) {
+      callback(err);
     });
   };
 
